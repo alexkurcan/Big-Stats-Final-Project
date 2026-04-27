@@ -3,11 +3,9 @@ package bigstats.model;
 import java.util.List;
 
 public class Question {
-
-    private final String prompt;
+    private final String prompt, unitTag;
     private final List<String> choices;
     private final int correctIndex;
-    private final String unitTag;
 
     public Question(String prompt, List<String> choices, int correctIndex, String unitTag) {
         if (choices == null || choices.size() < 2)
@@ -20,9 +18,9 @@ public class Question {
         this.unitTag      = unitTag;
     }
 
-    public String getPrompt()        { return prompt; }
-    public List<String> getChoices() { return choices; }
-    public int getCorrectIndex()     { return correctIndex; }
-    public String getUnitTag()       { return unitTag; }
-    public boolean isCorrect(int i)  { return i == correctIndex; }
+    public String       getPrompt()      { return prompt; }
+    public List<String> getChoices()     { return choices; }
+    public int          getCorrectIndex(){ return correctIndex; }
+    public String       getUnitTag()     { return unitTag; }
+    public boolean      isCorrect(int i) { return i == correctIndex; }
 }

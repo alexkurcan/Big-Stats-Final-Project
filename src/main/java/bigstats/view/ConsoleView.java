@@ -4,140 +4,86 @@ import bigstats.model.*;
 import java.util.Scanner;
 
 public class ConsoleView implements GameView {
+    private final Scanner sc = new Scanner(System.in);
 
-    private final Scanner scanner = new Scanner(System.in);
+    private void line() { System.out.println("─".repeat(60)); }
+    private void bar(String label, int cur, int max) {
+        int f = (int) Math.round(30.0 * cur / max);
+        System.out.printf("  %-10s [%s%s] %d/%d%n", label, "█".repeat(f), "░".repeat(30-f), cur, max);
+    }
+    private void pause() { System.out.print("[Enter] "); sc.nextLine(); }
 
-    // ── helpers ───────────────────────────────────────────────────────────────
+    @Override public String promptPlayerName() { System.out.print("Your name: "); return sc.nextLine().trim(); }
 
-    private void line() { System.out.println("═".repeat(60)); }
-
-    private void healthBar(String label, int cur, int max) {
-        int filled = (int) Math.round(((double) cur / max) * 30);
-        StringBuilder bar = new StringBuilder("[");
-        for (int i = 0; i < 30; i++) bar.append(i < filled ? "█" : "░");
-        bar.append("]");
-        System.out.printf("  %-10s %s  %d/%d%n", label, bar, cur, max);
+    @Override public void showTitleScreen() {
+        line(); System.out.println("  BIG STATS – Study for AP Statistics!"); line();
     }
 
-    private void pause() {
-        System.out.print("  [Press ENTER to continue] ");
-        scanner.nextLine();
-    }
-
-    // ── GameView ──────────────────────────────────────────────────────────────
-
-    @Override
-    public String promptPlayerName() {
-        System.out.print("Enter your name, student: ");
-        return scanner.nextLine().trim();
-    }
-
-    @Override
-    public void showTitleScreen() {
+    @Override public void showBossIntro(Boss boss, Player player) {
         line();
-        System.out.println("         BIG STATS: Study for AP Statistics!");
-        System.out.println("  Answer questions to defeat unit bosses, then ace the AP Exam.");
-        line();
-    }
-
-    @Override
-    public void showBossIntro(Boss boss, Player player) {
-        line();
-        System.out.printf("  ⚔  BOSS: %s  [%s]%n", boss.getUnitName(), boss.getDifficulty());
-        healthBar("Boss HP",       boss.getHealth(),   boss.getMaxHealth());
-        healthBar(player.getName(), player.getHealth(), player.getMaxHealth());
-        System.out.printf("  Correct → %d dmg to boss | Wrong → %d dmg to you%n",
+        System.out.printf("  ⚔ BOSS: %s [%s]%n", boss.getUnitName(), boss.getDifficulty());
+        bar("Boss HP", boss.getHealth(), boss.getMaxHealth());
+        bar(player.getName(), player.getHealth(), player.getMaxHealth());
+        System.out.printf("  Correct → %d boss dmg | Wrong → %d player dmg%n",
                 boss.getBossDamagePerCorrect(), boss.getPlayerDamagePerWrong());
-        line();
-        pause();
+        line(); pause();
     }
 
-    @Override
-    public void showAPExamIntro(Boss boss, Player player) {
+    @Override public void showAPExamIntro(Boss boss, Player player) {
         line();
-        System.out.println("  ★★★  THE AP STATISTICS EXAM  ★★★");
-        System.out.println("  Questions from ALL units, random order.");
-        System.out.printf("  Answer ≥ 75%% correctly to pass (score 3+).%n");
-        healthBar(player.getName(), player.getHealth(), player.getMaxHealth());
-        line();
-        pause();
+        System.out.println("  ★ THE AP EXAM – all units, random order. Need ≥75% to pass.");
+        bar(player.getName(), player.getHealth(), player.getMaxHealth());
+        line(); pause();
     }
 
-    @Override
-    public int promptAnswer(Question q, int remaining, int total) {
-        int num = total - remaining + 1;
-        System.out.printf("%n  Q%d of %d  [%s]%n%n  %s%n%n", num, total, q.getUnitTag(), q.getPrompt());
-        var choices = q.getChoices();
-        for (int i = 0; i < choices.size(); i++)
-            System.out.printf("    %c) %s%n", 'A' + i, choices.get(i));
+    @Override public int promptAnswer(Question q, int remaining, int total) {
+        System.out.printf("%n  Q%d/%d [%s]%n  %s%n%n", total - remaining, total, q.getUnitTag(), q.getPrompt());
+        var c = q.getChoices();
+        for (int i = 0; i < c.size(); i++) System.out.printf("    %c) %s%n", 'A'+i, c.get(i));
         while (true) {
-            System.out.print("%n  Your answer (A/B/C/D): ".formatted());
-            String in = scanner.nextLine().trim().toUpperCase();
-            if (in.length() == 1) {
-                int idx = in.charAt(0) - 'A';
-                if (idx >= 0 && idx < choices.size()) return idx;
-            }
-            System.out.println("  ⚠  Please enter A, B, C, or D.");
+            System.out.print("  Answer (A/B/C/D): ");
+            String in = sc.nextLine().trim().toUpperCase();
+            if (in.length() == 1) { int idx = in.charAt(0)-'A'; if (idx >= 0 && idx < c.size()) return idx; }
+            System.out.println("  Invalid – enter A, B, C, or D.");
         }
     }
 
-    @Override
-    public void showCorrectFeedback(Boss boss, Player player) {
-        System.out.println("\n  ✔  CORRECT!");
-        healthBar("Boss HP",       boss.getHealth(),   boss.getMaxHealth());
-        healthBar(player.getName(), player.getHealth(), player.getMaxHealth());
+    @Override public void showCorrectFeedback(Boss boss, Player player) {
+        System.out.println("  ✔ CORRECT!");
+        bar("Boss HP", boss.getHealth(), boss.getMaxHealth());
+        bar(player.getName(), player.getHealth(), player.getMaxHealth());
     }
 
-    @Override
-    public void showIncorrectFeedback(Question q, Boss boss, Player player) {
-        System.out.println("\n  ✘  INCORRECT!");
-        System.out.printf("     Correct answer: %c) %s%n",
-                'A' + q.getCorrectIndex(), q.getChoices().get(q.getCorrectIndex()));
-        healthBar("Boss HP",       boss.getHealth(),   boss.getMaxHealth());
-        healthBar(player.getName(), player.getHealth(), player.getMaxHealth());
+    @Override public void showIncorrectFeedback(Question q, Boss boss, Player player) {
+        System.out.printf("  ✘ INCORRECT! Answer: %c) %s%n",
+                'A'+q.getCorrectIndex(), q.getChoices().get(q.getCorrectIndex()));
+        bar("Boss HP", boss.getHealth(), boss.getMaxHealth());
+        bar(player.getName(), player.getHealth(), player.getMaxHealth());
     }
 
-    @Override
-    public void showBossDefeated(Boss boss, Player player) {
-        line();
-        System.out.printf("  🏆  Defeated %s!  HP: %d/%d%n",
-                boss.getUnitName(), player.getHealth(), player.getMaxHealth());
-        line();
-        pause();
+    @Override public void showBossDefeated(Boss boss, Player player) {
+        line(); System.out.printf("  🏆 Defeated %s! HP: %d/%d%n",
+                boss.getUnitName(), player.getHealth(), player.getMaxHealth()); line(); pause();
     }
 
-    @Override
-    public void showPlayerDefeated(Player player) {
+    @Override public void showPlayerDefeated(Player p) {
+        line(); System.out.println("  💀 You were defeated. Study harder!"); line();
+    }
+
+    @Override public void showAPExamResult(int correct, int total, double acc, double thr, Player p) {
         line();
-        System.out.println("  💀  You have been defeated. Study harder!");
+        System.out.printf("  AP EXAM: %d/%d (%.1f%%) – %s%n",
+                correct, total, acc*100, acc >= thr ? "★ PASSED!" : "✘ Failed.");
         line();
     }
 
-    @Override
-    public void showAPExamResult(int correct, int total, double accuracy, double threshold, Player player) {
-        line();
-        System.out.println("  📊  AP EXAM RESULTS");
-        System.out.printf("  Correct: %d / %d  (%.1f%%)%n", correct, total, accuracy * 100);
-        System.out.printf("  Pass threshold: %.0f%%%n", threshold * 100);
-        System.out.println(accuracy >= threshold ? "  ★  PASSED! Score: 3 or higher!" : "  ✘  Did not pass.");
-        line();
+    @Override public void showVictoryScreen(Player p) {
+        line(); System.out.printf("  🎉 YOU WIN, %s! Score: %d | Accuracy: %.1f%%%n",
+                p.getName().toUpperCase(), p.getScore(), p.getAccuracy()*100); line();
     }
 
-    @Override
-    public void showVictoryScreen(Player player) {
-        line();
-        System.out.printf("  🎉  CONGRATULATIONS, %s!%n", player.getName().toUpperCase());
-        System.out.printf("  Final — Score: %d | Accuracy: %.1f%%%n",
-                player.getScore(), player.getAccuracy() * 100);
-        line();
-    }
-
-    @Override
-    public void showGameOverScreen(Player player) {
-        line();
-        System.out.printf("  💀  GAME OVER — %s has fallen.%n", player.getName());
-        System.out.printf("  Final — Score: %d | Accuracy: %.1f%%%n",
-                player.getScore(), player.getAccuracy() * 100);
-        line();
+    @Override public void showGameOverScreen(Player p) {
+        line(); System.out.printf("  💀 GAME OVER – %s. Score: %d | Accuracy: %.1f%%%n",
+                p.getName(), p.getScore(), p.getAccuracy()*100); line();
     }
 }
