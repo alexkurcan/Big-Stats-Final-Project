@@ -3,16 +3,11 @@ package bigstats.pattern;
 import bigstats.model.*;
 import bigstats.view.GameView;
 
-/**
- * Concrete fight for the AP Exam final boss.
- * Questions are drawn from ALL units in randomized order.
- * Win condition: answer >= 75% correctly.
- */
+/** Concrete fight for the AP Exam final boss. Win condition: ≥ 75% correct. */
 public class APExamFight extends AbstractBossFight {
 
     public static final double WIN_THRESHOLD = 0.75;
 
-    // exam-local counters (separate from the overall player score so we can compute exam accuracy)
     private int examCorrect  = 0;
     private int examAnswered = 0;
 
@@ -22,14 +17,10 @@ public class APExamFight extends AbstractBossFight {
 
     @Override
     protected void loadQuestions() {
-        // AP Exam draws from ALL units, shuffled
-        iterator = new QuestionIterator(questionBank.getAllQuestions(), true);
+        iterator = new QuestionIterator(questionBank.getAllQuestions(), true); // shuffled
     }
 
-    @Override
-    protected void showIntro() {
-        view.showAPExamIntro(boss, player);
-    }
+    @Override protected void showIntro() { view.showAPExamIntro(boss, player); }
 
     @Override
     protected int presentQuestion(Question q) {
@@ -37,38 +28,34 @@ public class APExamFight extends AbstractBossFight {
     }
 
     @Override
-    protected boolean applyResult(Question q, int answerIndex) {
-        boolean correct = q.isCorrect(answerIndex);
+    protected boolean applyResult(Question q, int answer) {
         examAnswered++;
-        if (correct) {
+        if (q.isCorrect(answer)) {
             examCorrect++;
             player.recordCorrect();
             view.showCorrectFeedback(boss, player);
+            return true;
         } else {
             player.recordIncorrect();
             view.showIncorrectFeedback(q, boss, player);
+            return false;
         }
-        return correct;
     }
 
     @Override
     protected boolean isBossDefeated() {
-        // The exam "boss" is defeated when the player finishes all questions with >= 75%
-        // During iteration this is checked AFTER the loop ends.
         return !iterator.hasNext() && getExamAccuracy() >= WIN_THRESHOLD;
     }
-
-    /** Exam accuracy based only on this exam session. */
-    public double getExamAccuracy() {
-        if (examAnswered == 0) return 0.0;
-        return (double) examCorrect / examAnswered;
-    }
-
-    public int getExamCorrect()   { return examCorrect; }
-    public int getExamAnswered()  { return examAnswered; }
 
     @Override
     protected void showOutro() {
         view.showAPExamResult(examCorrect, examAnswered, getExamAccuracy(), WIN_THRESHOLD, player);
     }
+
+    public double getExamAccuracy() {
+        return examAnswered == 0 ? 0.0 : (double) examCorrect / examAnswered;
+    }
+
+    public int getExamCorrect()  { return examCorrect; }
+    public int getExamAnswered() { return examAnswered; }
 }
