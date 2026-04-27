@@ -2,79 +2,46 @@ package bigstats.model;
 
 import java.util.List;
 
-/**
- * Tracks overall game progression through boss stages.
- */
 public class GameState {
 
     public enum Stage { UNIT_BOSS, AP_EXAM, GAME_OVER, VICTORY }
 
-    private final List<Boss> bosses;        // ordered list of unit bosses
-    private int currentBossIndex;           // index into bosses (before AP exam)
-    private Stage stage;
-    private boolean playerWon;
+    private final List<Boss> bosses;
+    private int currentBossIndex = 0;
+    private Stage stage = Stage.UNIT_BOSS;
+    private boolean playerWon = false;
 
     public GameState(List<Boss> bosses) {
-        if (bosses == null || bosses.isEmpty()) {
+        if (bosses == null || bosses.isEmpty())
             throw new IllegalArgumentException("Boss list cannot be null or empty.");
-        }
-        this.bosses            = List.copyOf(bosses);
-        this.currentBossIndex  = 0;
-        this.stage             = Stage.UNIT_BOSS;
-        this.playerWon         = false;
+        this.bosses = List.copyOf(bosses);
     }
 
-    // ── current boss ─────────────────────────────────────────────────────────
-
-    /** Returns the currently active unit boss, or null if we are past all unit bosses. */
     public Boss getCurrentBoss() {
-        if (currentBossIndex < bosses.size()) {
-            return bosses.get(currentBossIndex);
-        }
-        return null;
+        return currentBossIndex < bosses.size() ? bosses.get(currentBossIndex) : null;
     }
 
     public int getCurrentBossIndex() { return currentBossIndex; }
     public int getTotalBosses()      { return bosses.size(); }
     public List<Boss> getBosses()    { return bosses; }
+    public int getDefeatedBossCount(){ return currentBossIndex; }
+    public Stage getStage()          { return stage; }
+    public boolean isGameOver()      { return stage == Stage.GAME_OVER; }
+    public boolean isVictory()       { return stage == Stage.VICTORY; }
+    public boolean isFinished()      { return isGameOver() || isVictory(); }
+    public boolean isPlayerWon()     { return playerWon; }
 
-    /** How many unit bosses have been defeated so far. */
-    public int getDefeatedBossCount() { return currentBossIndex; }
-
-    // ── stage transitions ────────────────────────────────────────────────────
-
-    public Stage getStage() { return stage; }
-
-    /**
-     * Advance to the next boss. If all unit bosses are defeated, transitions to AP_EXAM.
-     */
+    /** Move to the next unit boss, or transition to AP_EXAM when all are done. */
     public void advanceToNextBoss() {
         currentBossIndex++;
-        if (currentBossIndex >= bosses.size()) {
-            stage = Stage.AP_EXAM;
-        }
+        if (currentBossIndex >= bosses.size()) stage = Stage.AP_EXAM;
     }
 
-    /** Called when the player loses all HP. */
-    public void setGameOver() {
-        stage     = Stage.GAME_OVER;
-        playerWon = false;
-    }
-
-    /** Called when the player passes the AP Exam. */
-    public void setVictory() {
-        stage     = Stage.VICTORY;
-        playerWon = true;
-    }
-
-    public boolean isGameOver()  { return stage == Stage.GAME_OVER; }
-    public boolean isVictory()   { return stage == Stage.VICTORY; }
-    public boolean isFinished()  { return stage == Stage.GAME_OVER || stage == Stage.VICTORY; }
-    public boolean isPlayerWon() { return playerWon; }
+    public void setGameOver() { stage = Stage.GAME_OVER; playerWon = false; }
+    public void setVictory()  { stage = Stage.VICTORY;   playerWon = true;  }
 
     @Override
     public String toString() {
-        return String.format("GameState{stage=%s, bossIndex=%d/%d}",
-                stage, currentBossIndex, bosses.size());
+        return String.format("GameState{stage=%s, boss=%d/%d}", stage, currentBossIndex, bosses.size());
     }
 }
