@@ -57,4 +57,4 @@ BigStats2/
 ```
 # Coverage section
 We had about an 70% coverage rate.
-![alt text](https://github.com/alexkurcan/Big-Stats-Final-Project/blob/main/image_2026-04-28_093204733.png "Coverage Screenshot from Alex's Computer") ![alt text](https://github.com/alexkurcan/Big-Stats-Final-Project/blob/main/image_2026-04-28_095317764.png "Coverage Screen from Sham's Computer")
+![alt text](https://github.com/alexkurcan/Big-Stats-Final-Project/blob/main/image_2026-04-29_100349532.png "Coverage Screenshot from Alex's Computer")
