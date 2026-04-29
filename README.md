@@ -56,5 +56,5 @@ BigStats2/
         └── APExamFightTest.java
 ```
 # Coverage section
-We had about an 70% coverage rate.
+We had about an 96% coverage rate.
 ![alt text](https://github.com/alexkurcan/Big-Stats-Final-Project/blob/main/image_2026-04-29_100349532.png "Coverage Screenshot from Alex's Computer")
